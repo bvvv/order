@@ -1,8 +1,9 @@
+import logging
 import os
 import re
+
 import cn2an
 import pandas as pd
-import logging
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.utils import get_column_letter
 
@@ -227,7 +228,13 @@ def ordertrans(excel_path):
 
     # 获取文件名（不包含扩展名）
     (file_name_without_ext, file_ext) = os.path.splitext(file_name)
-    output_file_path = 'output/' + file_name_without_ext + '-云仓' + file_ext
+    output_dir = 'output'
+
+    # 检查目录是否存在
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    output_file_path = '%s/%s-云仓%s' % (output_dir, file_name_without_ext, file_ext)
     with pd.ExcelWriter(output_file_path) as writer:
         df.to_excel(writer, engine='openpyxl', index=False)
         # 获取工作表对象
