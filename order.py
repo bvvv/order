@@ -88,7 +88,8 @@ def ordertrans(excel_path):
             new_column_name.append(x)
             unknown_column_name.append(x)
     logging.debug('新列名列表：%s' % new_column_name)
-    logging.warning('未识别列名列表：%s' % unknown_column_name)
+    if unknown_column_name:
+        logging.warning('未识别列名列表：%s' % unknown_column_name)
     df.columns = pd.Index(new_column_name)
 
     goods = df['商品']
