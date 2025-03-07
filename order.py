@@ -1,8 +1,13 @@
 import os
 import re
-
 import cn2an
 import pandas as pd
+import logging
+from openpyxl.styles import Font, Alignment, PatternFill
+from openpyxl.utils import get_column_letter
+
+# 配置日志记录
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # 0: 伊花集-斯亚旦植物发皂（蓝）
 # 1: 伊花集-斯亚旦植物发皂（绿）
@@ -41,7 +46,7 @@ courier_num_list = ['快递单号', '物流单号']
 name_list = ['姓名', '收件人']
 phone_num_list = ['电话']
 address_list = ['地址']
-goods_list = ['商品']
+goods_list = ['商品', '货品摘要']
 quantity_list = ['数量', '数量合计']
 shipper_list = ['发货人']
 shipper_num_list = ['发货电话']
@@ -50,11 +55,11 @@ shipper_num_list = ['发货电话']
 def ordertrans(excel_path):
     excel_file = pd.ExcelFile(excel_path)
     sheet_names = excel_file.sheet_names
-    print('页面名称列表：%s' % sheet_names)
+    logging.info('页面列表：%s' % sheet_names)
     df = excel_file.parse(sheet_names[0])
     column_name = df.columns
-    print('列名称列表：%s' % column_name)
-
+    logging.info('列名列表：%s' % column_name.to_list())
+    unknown_column_name = []
     new_column_name = []
     for i in range(column_name.size):
         x = column_name[i].strip()
@@ -80,26 +85,27 @@ def ordertrans(excel_path):
             new_column_name.append(shipper_num_list[0])
         else:
             new_column_name.append(x)
-            print('未识别的列名：%s' % x)
-    print('新列名列表：%s' % new_column_name)
+            unknown_column_name.append(x)
+    logging.debug('新列名列表：%s' % new_column_name)
+    logging.warning('未识别列名列表：%s' % unknown_column_name)
     df.columns = pd.Index(new_column_name)
 
     goods = df['商品']
     quantity = df['数量']
     n = len(goods)
-    print('订单数量为：%i' % n)
+    logging.info('订单数量：%i' % n)
 
     if quantity.apply(lambda x: isinstance(x, int) and (x > 0)).all():
         pass
     else:
-        print('Error: 数量必须为正整数')
+        logging.critical('Error: 数量必须为正整数')
         exit()
 
     gcolumn = []
     for i in range(n):
         glist = str(goods[i]).split('，')
         yun_glist = []
-        print(glist)
+        logging.debug(glist)
         for j in range(len(glist)):
             gitem = glist[j].strip()
             match1 = re.match(r'斯亚旦发皂(.*)块装', gitem)
@@ -197,9 +203,9 @@ def ordertrans(excel_path):
                 yun_glist.append([golden[2], quantity[i]])
                 yun_glist.append([golden[1], quantity[i]])
             else:
-                print('未识别的商品：%s' % glist[j])
+                logging.error('未识别的商品：%s' % glist[j])
                 exit()
-        print(yun_glist)
+        logging.debug(yun_glist)
         gcell = ''
         for g in yun_glist:
             if g[0] == golden[0] or g[0] == golden[1] or g[0] == golden[8]:
@@ -211,7 +217,7 @@ def ordertrans(excel_path):
             else:
                 gcell += '，%s*%s' % (yun_glist[j][0], yun_glist[j][1])
         gcolumn.append(gcell)
-    print(gcolumn)
+    logging.debug(gcolumn)
 
     df['商品'] = gcolumn
     df['数量'] = 1
@@ -220,10 +226,43 @@ def ordertrans(excel_path):
     file_name = os.path.basename(excel_path)
 
     # 获取文件名（不包含扩展名）
-    file_name_without_ext = os.path.splitext(file_name)[0]
-    output_file_path = 'output/' + file_name_without_ext + '-云仓.xlsx'
+    (file_name_without_ext, file_ext) = os.path.splitext(file_name)
+    output_file_path = 'output/' + file_name_without_ext + '-云仓' + file_ext
     with pd.ExcelWriter(output_file_path) as writer:
-        df.to_excel(writer, index=False)
+        df.to_excel(writer, engine='openpyxl', index=False)
+        # 获取工作表对象
+        worksheet = writer.sheets['Sheet1']
+
+        # 创建字体样式
+        header_font = Font(name='黑体', size=14)
+        body_font = Font(name='宋体', size=12)
+
+        # 创建对齐方式
+        center_alignment = Alignment(horizontal='center', vertical='center')
+
+        # 创建填充样式
+        header_fill = PatternFill(start_color='FFFF00', end_color='FFFF00', fill_type='solid')
+
+        # 设置表头样式
+        for cell in worksheet[1]:
+            cell.font = header_font
+            cell.alignment = center_alignment
+            cell.fill = header_fill
+
+        # 设置数据行样式
+        for row in worksheet.iter_rows(min_row=2):
+            for cell in row:
+                cell.font = body_font
+                cell.alignment = center_alignment
+        # 遍历所有列
+        for col_idx, column in enumerate(df):
+            # 获取列的最大长度
+            column_length = max(df[column].astype(str).map(len).max(), len(column))
+            # 将列索引转换为字母
+            col_letter = get_column_letter(col_idx + 1)
+            # 设置列宽
+            worksheet.column_dimensions[col_letter].width = column_length + 8
+    logging.info('%s reformed successfully.%s' % (file_name_without_ext, os.linesep))
 
 
 if __name__ == '__main__':
