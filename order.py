@@ -1,14 +1,13 @@
+import cn2an
 import logging
 import os
 import re
-
-import cn2an
 import pandas as pd
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.utils import get_column_letter
 
 # 配置日志记录
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+#logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # 0: 伊花集-斯亚旦植物发皂（蓝）
 # 1: 伊花集-斯亚旦植物发皂（绿）
@@ -56,10 +55,10 @@ shipper_num_list = ['发货电话']
 def ordertrans(excel_path):
     excel_file = pd.ExcelFile(excel_path)
     sheet_names = excel_file.sheet_names
-    logging.info('页面列表：%s' % sheet_names)
+    logging.info('页面：%s' % sheet_names)
     df = excel_file.parse(sheet_names[0])
     column_name = df.columns
-    logging.info('列名列表：%s' % column_name.to_list())
+    logging.info('列名：%s' % column_name.to_list())
     unknown_column_name = []
     new_column_name = []
     for i in range(column_name.size):
@@ -87,9 +86,9 @@ def ordertrans(excel_path):
         else:
             new_column_name.append(x)
             unknown_column_name.append(x)
-    logging.debug('新列名列表：%s' % new_column_name)
+    logging.debug('新列名：%s' % new_column_name)
     if unknown_column_name:
-        logging.warning('未识别列名列表：%s' % unknown_column_name)
+        logging.warning('未识别列名：%s' % unknown_column_name)
     df.columns = pd.Index(new_column_name)
 
     goods = df['商品']
