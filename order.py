@@ -6,7 +6,6 @@ import pandas as pd
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.utils import get_column_letter
 
-
 # 0: 伊花集-斯亚旦植物发皂（蓝）
 # 1: 伊花集-斯亚旦植物发皂（绿）
 # 2: 伊花集-奥斯曼植物发油
@@ -225,7 +224,6 @@ def ordertrans(excel_path):
     df['商品'] = gcolumn
     df['数量'] = 1
 
-
     # 检查目录是否存在
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -265,8 +263,4 @@ def ordertrans(excel_path):
             col_letter = get_column_letter(col_idx + 1)
             # 设置列宽
             worksheet.column_dimensions[col_letter].width = column_length + 8
-    logging.info('%s转换成功.%s' % (file_name_without_ext, os.linesep))
-
-
-if __name__ == '__main__':
-    ordertrans('input/丝路228.xlsx')
+    logging.info('%s转换成功%s' % (file_name_without_ext, os.linesep))
