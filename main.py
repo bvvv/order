@@ -1,8 +1,14 @@
 import os
 import order
+import logging
 
 # 定义 input 目录路径
 input_dir = 'input'
+
+# 配置日志记录器
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # 初始化一个空列表用于存储找到的 Excel 文件路径
 excel_files = []

@@ -7,6 +7,7 @@ from tkinter import scrolledtext
 # 配置日志记录器
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+version = 0.1
 
 # 配置日志
 class TextHandler(logging.Handler):
@@ -16,18 +17,21 @@ class TextHandler(logging.Handler):
 
     def emit(self, record):
         msg = self.format(record)
+
         def append():
             self.text.configure(state='normal')
             self.text.insert(tk.END, msg + '\n')
             self.text.configure(state='disabled')
             # 滚动到最新日志
             self.text.yview(tk.END)
+
         # 确保在主线程中更新 GUI
         self.text.after(0, append)
 
+
 # 创建主窗口
 root = tk.Tk()
-root.title("订单转换")
+root.title("订单转换v%s" % version)
 root.geometry("800x600")
 
 # 创建一个滚动文本框用于显示日志
@@ -42,6 +46,7 @@ logger.addHandler(text_handler)
 # 创建一个标签
 label = tk.Label(root, text="欢迎使用订单转换程序!")
 label.pack(pady=10)
+
 
 # 创建一个按钮
 def on_button_click():
@@ -67,6 +72,7 @@ def on_button_click():
         ordertrans(file_path)
 
     label.config(text="转换完成，请到output目录下查看。")
+
 
 button = tk.Button(root, text="转换input目录下的订单", command=on_button_click)
 button.pack(pady=10)

@@ -6,8 +6,6 @@ import pandas as pd
 from openpyxl.styles import Font, Alignment, PatternFill
 from openpyxl.utils import get_column_letter
 
-# 配置日志记录
-#logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # 0: 伊花集-斯亚旦植物发皂（蓝）
 # 1: 伊花集-斯亚旦植物发皂（绿）
@@ -53,9 +51,13 @@ shipper_num_list = ['发货电话']
 
 
 def ordertrans(excel_path):
+    output_dir = 'output'
+    # 获取文件名
+    file_name = os.path.basename(excel_path)
+    (file_name_without_ext, file_ext) = os.path.splitext(file_name)
     excel_file = pd.ExcelFile(excel_path)
     sheet_names = excel_file.sheet_names
-    logging.info('页面：%s' % sheet_names)
+    logging.info('%s：%s' % (file_name_without_ext, sheet_names))
     df = excel_file.parse(sheet_names[0])
     column_name = df.columns
     logging.info('列名：%s' % column_name.to_list())
@@ -223,12 +225,6 @@ def ordertrans(excel_path):
     df['商品'] = gcolumn
     df['数量'] = 1
 
-    # 获取文件名（包含扩展名）
-    file_name = os.path.basename(excel_path)
-
-    # 获取文件名（不包含扩展名）
-    (file_name_without_ext, file_ext) = os.path.splitext(file_name)
-    output_dir = 'output'
 
     # 检查目录是否存在
     if not os.path.exists(output_dir):
@@ -269,7 +265,7 @@ def ordertrans(excel_path):
             col_letter = get_column_letter(col_idx + 1)
             # 设置列宽
             worksheet.column_dimensions[col_letter].width = column_length + 8
-    logging.info('%s reformed successfully.%s' % (file_name_without_ext, os.linesep))
+    logging.info('%s转换成功.%s' % (file_name_without_ext, os.linesep))
 
 
 if __name__ == '__main__':
